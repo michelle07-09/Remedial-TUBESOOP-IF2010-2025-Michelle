@@ -1,0 +1,31 @@
+# ===== Gradle Build Output =====
+.gradle/
+build/
+bin/
+
+# ===== IntelliJ IDEA =====
+.idea/
+*.iml
+*.iws
+*.ipr
+*.xml
+
+# ===== VS Code =====
+.vscode/
+
+# ===== macOS =====
+.DS_Store
+
+# ===== Old Maven Artifacts (jaga-jaga) =====
+target/
+.mvn/
+pom.xml
+
+# ===== Optional: hasil build dalam src (kalau ada) =====
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+.idea/workspace.xml
+build/reports/problems/problems-report.html
+*.class
+/bin

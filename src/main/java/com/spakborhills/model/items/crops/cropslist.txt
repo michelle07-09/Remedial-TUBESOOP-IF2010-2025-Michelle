@@ -1,0 +1,11 @@
+Parsnip 50 35
+Cauliflower 200 150
+Potato 0 80
+Wheat 50 30
+Blueberry 150 40
+Tomato 90 60
+Hot Pepper 0 40
+Melon 0 250
+Cranberry 0 25
+Pumpkin 300 250
+Grape 100 10

@@ -1,0 +1,12 @@
+Parsnip Seeds 20
+Cauliflower Seeds 80
+Potato Seeds 50
+Wheat Seeds 60
+Blueberry Seeds 80
+Tomato Seeds 50
+Hot Pepper Seeds 40
+Melon Seeds 80
+Cranberry Seeds 100
+Pumpkin Seeds 150
+Wheat Seeds 60
+Grape Seeds 60

@@ -1,0 +1,13 @@
+Fish n' Chips 150 135
+Baguette 100 80
+Sashimi 300 275
+Fugu 0 135
+Wine 100 90
+Pumpkin Pie 120 100
+Veggie Soup 140 120
+Fish Stew 280 260
+Spakbor Salad 0 250
+Fish Sandwich 200 180
+The Legends of Spakbor 0 2000
+Cooked Pig's Head 1000 0
+Egg 10 5
