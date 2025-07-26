@@ -1,29 +1,30 @@
+// File: NPC.java (Updated Snippet)
+
 package com.spakborhills.model.entity.npc;
 
 import java.util.*;
 
-import com.spakborhills.model.entity.RelationshipStatus;
+import com.spakborhills.model.entity.RelationshipStatus; // Make sure this enum exists
 import com.spakborhills.model.items.AllGameItems;
 import com.spakborhills.model.items.Item;
 
 public class NPC implements Cloneable {
     private String name;
     private int heartPoints;
-    private static int maxHeartPoints = 150;
+    private static int maxHeartPoints = 150; // Max heart points
     private List<Item> lovedItems;
     private List<Item> hatedItems;
     private List<Item> likedItems = new ArrayList<Item>();
     private RelationshipStatus relationshipStatus;
+    private long fiancéDate = 0; // To store game time when became fiancé
 
     public NPC(String name) {
-
         this.name = name;
         this.heartPoints = 0;
         this.lovedItems = new ArrayList<>();
         this.hatedItems = new ArrayList<>();
         this.likedItems = new ArrayList<>();
         this.relationshipStatus = RelationshipStatus.SINGLE;
-
     }
 
     // method clone
@@ -41,24 +42,19 @@ public class NPC implements Cloneable {
         }
     }
 
-    // builder methods
+    // Builder pattern for adding items
     public NPC addLovedItem(Item... items) {
-        if (items != null) {
-            Collections.addAll(lovedItems, items);
-        }
+        Collections.addAll(this.lovedItems, items);
+        return this;
+    }
+
+    public NPC addLikedItem(Item... items) {
+        Collections.addAll(this.likedItems, items);
         return this;
     }
 
     public NPC addHatedItem(Item... items) {
-        if (items != null) {
-            Collections.addAll(hatedItems, items);
-        }
-        return this;
-    }
-    public NPC addLikedItem(Item... items) {
-        if (items != null) {
-            Collections.addAll(likedItems, items);
-        }
+        Collections.addAll(this.hatedItems, items);
         return this;
     }
 
@@ -95,17 +91,34 @@ public class NPC implements Cloneable {
     public List<Item> getLikedItems() {
         return likedItems;
     }
+    public long getFiancéDate() {
+        return fiancéDate;
+    }
 
     // setters
     public void setHeartPoints(int heartPoints) {
-        if (heartPoints > maxHeartPoints) {
+        this.heartPoints = heartPoints;
+        if (this.heartPoints > maxHeartPoints) {
             this.heartPoints = maxHeartPoints;
+        } else if (this.heartPoints < 0) {
+            this.heartPoints = 0; // Prevent negative heart points
         }
-        else {
-            this.heartPoints = Math.max(heartPoints, 0);
-        }
+        updateRelationshipStatus(); // Update status based on heart points
     }
+
     public void setRelationshipStatus(RelationshipStatus relationshipStatus) {
         this.relationshipStatus = relationshipStatus;
+    }
+
+    public void setFiancéDate(long fiancéDate) {
+        this.fiancéDate = fiancéDate;
+    }
+
+    private void updateRelationshipStatus() {
+        // You can define thresholds for different relationship statuses here
+        // For now, let's keep it simple: max heart points for proposing
+        if (this.heartPoints == maxHeartPoints && this.relationshipStatus == RelationshipStatus.SINGLE) {
+            // Optional: You might want a "friend" or "close friend" status before FIANCE
+        }
     }
 }

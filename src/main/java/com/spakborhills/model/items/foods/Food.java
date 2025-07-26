@@ -6,13 +6,12 @@ import com.spakborhills.model.items.behavior.Edible;
 public class Food extends Item implements Cloneable, Edible {
     int energyGain;
 
-    public Food(String name, int buyPrice, int sellPrice) {
-        super(name, sellPrice, buyPrice);
-    }
+
     public Food(String name, int buyPrice, int sellPrice, int energyGain) {
         super(name, sellPrice, buyPrice);
         this.energyGain = energyGain;
     }
+
 
     @Override
     public Food clone(){

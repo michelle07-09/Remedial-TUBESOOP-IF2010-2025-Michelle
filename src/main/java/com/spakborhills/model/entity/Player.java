@@ -1,17 +1,11 @@
 package com.spakborhills.model.entity;
 
-//import com.spakborhills.model.entity.npc.NPCRegistry;
 import com.spakborhills.model.items.Inventory;
 import com.spakborhills.model.items.Item;
 import com.spakborhills.model.items.fish.FishRegistry;
 import com.spakborhills.model.items.foods.FoodRegistry;
-import com.spakborhills.model.items.seeds.Seed;
+import com.spakborhills.model.items.recipes.Recipe; // ✅ Tambahan
 import com.spakborhills.model.items.seeds.SeedRegistry;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class Player {
     private String name;
@@ -19,12 +13,11 @@ public class Player {
     private final int maxEnergy = 100;
     private int energy;
     private String farmName;
-    //private NPC partner;
     private int gold;
     private Inventory inventory;
     private Item itemHeld = null;
 
-    // location
+    private Recipe recipePicked; // ✅ Tambahan
 
     public Player(String name, String gender, String farmName) {
         this.name = name;
@@ -48,9 +41,11 @@ public class Player {
     public int getEnergy() {
         return energy;
     }
+
     public int getGold() {
         return gold;
     }
+
     public int getMaxEnergy(){
         return maxEnergy;
     }
@@ -78,5 +73,14 @@ public class Player {
 
     public Inventory getInventory() {
         return inventory;
+    }
+
+    // ✅ Tambahkan ini:
+    public void setRecipePicked(Recipe recipePicked) {
+        this.recipePicked = recipePicked;
+    }
+
+    public Recipe getRecipePicked() {
+        return recipePicked;
     }
 }

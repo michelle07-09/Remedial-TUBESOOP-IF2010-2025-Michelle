@@ -1,5 +1,6 @@
 package com.spakborhills.model.entity;
 
+import com.spakborhills.model.entity.npc.NPCView;
 import com.spakborhills.view.gui.GamePanel;
 import com.spakborhills.controller.KeyHandler;
 
@@ -87,6 +88,7 @@ public class PlayerView extends Entity{
             collisionOn = false;
             gp.cChecker.checkTile(this);
 
+
             if (!collisionOn){
                 switch (direction){
                     case "up" : setWorldY(getWorldY() - speed); break;
@@ -117,9 +119,7 @@ public class PlayerView extends Entity{
                 }
             }
         }
-        else {
-            spriteNum = 1;
-        }
+
     }
 
     public void draw(Graphics2D g2){
@@ -189,4 +189,8 @@ public class PlayerView extends Entity{
     }
 
     public String getFrontTileType() {return frontTileType;}
+
+    public String getDirection() {
+        return this.direction;
+    }
 }

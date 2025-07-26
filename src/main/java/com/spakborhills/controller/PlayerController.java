@@ -2,33 +2,44 @@ package com.spakborhills.controller;
 
 import java.awt.*;
 import java.util.ArrayList;
-import javax.swing.JOptionPane; // tambahkan import di atas file
+import javax.swing.JOptionPane;
 
-//import com.spakborhills.model.entity.NPCRegistry;
+// Import yang diperlukan untuk sistem cooking
+import com.spakborhills.model.items.recipes.Pan; // ✅ Import Pan class
 import com.spakborhills.model.entity.Player;
 import com.spakborhills.model.entity.PlayerView;
 import com.spakborhills.model.entity.RelationshipStatus;
 import com.spakborhills.model.entity.npc.NPC;
 import com.spakborhills.model.game.*;
+import com.spakborhills.model.items.Inventory;
 import com.spakborhills.model.items.Item;
+import com.spakborhills.model.items.ShippingBin;
 import com.spakborhills.model.items.behavior.Edible;
 import com.spakborhills.model.items.crops.Crops;
 import com.spakborhills.model.items.crops.CropsRegistry;
 import com.spakborhills.model.items.fish.Fish;
 import com.spakborhills.model.items.fish.FishRegistry;
 import com.spakborhills.model.items.foods.Food;
+import com.spakborhills.model.items.recipes.IngredientPlaceholder; // ✅ Import IngredientPlaceholder
+import com.spakborhills.model.items.recipes.Recipe;
+import com.spakborhills.model.items.recipes.RecipeRegistry;
 import com.spakborhills.model.items.seeds.Seed;
+import com.spakborhills.model.items.recipes.Fuel;
+import com.spakborhills.model.items.recipes.FuelRegistry;
+
 import com.spakborhills.view.gui.GamePanel;
-import com.spakborhills.view.gui.NPCInteractionPanel;
 import java.util.Random;
+import java.util.*;
 
 public class PlayerController {
 
     private Player player;
     private PlayerView drawPlayer;
+    PlayerStats playerStats = PlayerStats.getInstance();
     GameTime gameTime = GameTime.getInstance();
     private GamePanel gp;
     private Random rand = new Random();
+    private Pan cookingPan; // ✅ Deklarasi objek Pan
 
     public PlayerController(Player player, PlayerView drawPlayer, GamePanel gp) {
         this.player = player;
@@ -63,6 +74,55 @@ public class PlayerController {
             System.out.println("Chosen Item: " + foundItem.getName());
         }
     }
+
+    public void chooseRecipe() {
+        String recipeUse = JOptionPane.showInputDialog(null, "Masukkan nama resep yang ingin dipilih atau ketik 'back':", "Pilih Resep", JOptionPane.QUESTION_MESSAGE);
+
+        if (recipeUse == null || recipeUse.equalsIgnoreCase("back")) return;
+
+        Recipe foundRecipe = null;
+        for (Recipe recipe : RecipeRegistry.getUnlockedRecipes()) {
+            if (recipe.getRecipeName().equalsIgnoreCase(recipeUse)) {
+                foundRecipe = recipe;
+                break;
+            }
+        }
+
+        if (foundRecipe == null) {
+            System.out.println("Resep tidak ditemukan.");
+        } else {
+            player.setRecipePicked(foundRecipe);
+            System.out.println("Resep terpilih: " + foundRecipe.getRecipeName());
+        }
+    }
+
+
+    public boolean addIngredientToCookingPan(Item item, int quantity) {
+        if (player.getRecipePicked() == null) {
+            System.out.println("Mohon pilih resep terlebih dahulu.");
+            return false;
+        }
+
+        if (player.getInventory().getItemQuantity(item) < quantity) {
+            System.out.println("Tidak cukup " + item.getName() + " di inventaris.");
+            return false;
+        }
+
+        if (cookingPan.addIngredient(item, quantity)) {
+            player.getInventory().remove(item, quantity);
+            System.out.println("Berhasil menambahkan " + quantity + " " + item.getName() + " ke pan.");
+            return true;
+        } else {
+            System.out.println("Gagal menambahkan " + item.getName() + " ke pan. Mungkin tidak dibutuhkan untuk resep ini.");
+            return false;
+        }
+    }
+
+    public void clearCookingPan() {
+        cookingPan.clear(); // asumsi kamu punya method clear() di cookingPan
+        System.out.println("Cooking pan dibersihkan.");
+    }
+
 
     public boolean rightTool(String toolName){
         if(player.getItemHeld() == null){
@@ -150,6 +210,7 @@ public class PlayerController {
             } else {
                 System.out.println("Cannot till this tile: " + currentTileType);
             }
+            gp.showTemporaryPopUp("/assets/PopUps/PlantingPopUp.png", 2500, 200);
         }
         else{
             System.out.println("Wrong season lil bro");
@@ -181,6 +242,7 @@ public class PlayerController {
 
         if (!gp.getPlantManager().getPlants().get(tileLoc).isReadyToHarvest()){
             System.out.println("Crop is not ready to harvest");
+            gp.showTemporaryPopUp("/assets/PopUps/CropNotReadyPopUp.png", 2500, 200);
             return;
         }
         player.getInventory().add(CropsRegistry.getCropsPrototype(gp.getPlantManager().getPlants().get(tileLoc).getCropName()), 1);
@@ -229,41 +291,46 @@ public class PlayerController {
             player.setItemHeld(null);
         }
     }
-    public void cooking(){
 
-    }
-    public void sleeping(int energyLeft, int sleepHour, int sleepMinute){
+
+    public void sleeping(int energyLeft, int sleepHour, int sleepMinute) {
         gp.showTemporaryPopUp("/assets/PopUps/SleepPopUp.png", 2500, 0);
         gp.setCurrentMap("house default");
         drawPlayer.setDefaultValues(117, 119);
 
-        if (energyLeft <= 0){
+        if (energyLeft <= 0) {
             player.setEnergy(10);
             System.out.println("Anda terbangun tanpa tenaga");
-        }
-        else if (energyLeft < 0.1 * player.getMaxEnergy()){
-            player.setEnergy(player.getMaxEnergy() / 2);
-            System.out.println("Anda terbangun dalam keadaan lelah");
-        }
-        else if (energyLeft == 0){
-            player.setEnergy(10);
-            System.out.println("Anda terbangun tanpa tenaga");
-        }
-        else {
-            player.setEnergy(player.getMaxEnergy());
-            System.out.println("SEMANGAT PAGI! PAGI PAGI PAGI LUAR BIASA!");
-        }
-        if ((sleepHour > -1 && sleepHour < 3)){
-            int hourTo2 = 5 - sleepHour;
-            int minuteTo2 = (60 - sleepMinute) + hourTo2 * 60;
-            gameTime.advanceGameTime(minuteTo2);
-        }
-        else{
-            int hourTo2 = 23 - sleepHour;
-            int minuteTo2 = (60 - sleepMinute) + hourTo2 * 60;
-            gameTime.startNewDay(minuteTo2);
+        } else if (energyLeft < 0.1 * player.getMaxEnergy()) {
+            ShippingBin shippingBin = new ShippingBin();
+            int incomeGold = shippingBin.sellAllItemsAndReturnProfit();
+
+            if (energyLeft < 0.1 * player.getMaxEnergy()) {
+                player.setEnergy(player.getMaxEnergy() / 2);
+                System.out.println("Anda terbangun dalam keadaan lelah");
+            } else if (energyLeft == 0) {
+                player.setEnergy(10);
+                System.out.println("Anda terbangun tanpa tenaga");
+            } else {
+                player.setEnergy(player.getMaxEnergy());
+                System.out.println("SEMANGAT PAGI! PAGI PAGI PAGI LUAR BIASA!");
+            }
+            if ((sleepHour > -1 && sleepHour < 3)) {
+                int hourTo2 = 5 - sleepHour;
+                int minuteTo2 = (60 - sleepMinute) + hourTo2 * 60;
+                gameTime.advanceGameTime(minuteTo2);
+            } else {
+                int hourTo2 = 23 - sleepHour;
+                int minuteTo2 = (60 - sleepMinute) + hourTo2 * 60;
+                gameTime.startNewDay(minuteTo2);
+            }
+
+            if (incomeGold > 0) {
+                player.setGold(player.getGold() + incomeGold);
+            }
         }
     }
+
     public void watching(){
         gameTime.advanceGameTime(15);
         player.setEnergy(player.getEnergy() - 5);
@@ -273,7 +340,6 @@ public class PlayerController {
         } else if (gameTime.getWeather() == Weather.RAINY) {
             gp.showTemporaryPopUp("/assets/PopUps/RainyPopUp.png", 2500, 0);
         }
-
     }
 
     // WORLD ACTION
@@ -324,6 +390,8 @@ public class PlayerController {
             if (success){
                 player.getInventory().add(caughtFish.clone(), 1);
                 System.out.println("You caught a " + caughtFish.getName() + "!");
+
+                playerStats.fishCaught(caughtFish);
             }
             else{
                 System.out.println("The fish got away!");
@@ -343,21 +411,72 @@ public class PlayerController {
 
     // TO NPC ACTION
     public void proposing(NPC npc){
+        String npcName = npc.getName();
         gameTime.advanceGameTime(60);
         if (npc.getHeartPoints() == NPC.getMaxHeartPoints()){
             System.out.println("Aku mau mas");
+            gp.getNpcInteractionPanel().showImagePopup("/assets/PopUps/AcceptProposal/" + npcName + " Proposed.png", 2500, 0);
             npc.setRelationshipStatus(RelationshipStatus.FIANCE);
             player.setEnergy(player.getEnergy() - 10);
         }
         else{
             System.out.println("Maaf aku belum siap");
+            gp.getNpcInteractionPanel().showImagePopup("/assets/PopUps/NotReadyMarry/" + npcName + " Not Ready.png", 2500, 0);
+
             player.setEnergy(player.getEnergy() - 20);
         }
     }
     public void marrying(NPC npc){
         System.out.println("You are now married to " + npc.getName());
         String currentNPCName = gp.getCurrentNPC().getName();
-        gp.getNpcInteractionPanel().showTemporaryPopUpNPC("/assets/PopUps/MarriedPopUp/Marry" + currentNPCName + ".png", 2500, 0);
+        gp.getNpcInteractionPanel().showImagePopup("/assets/PopUps/MarriedPopUp/Marry" + currentNPCName + ".png", 2500, 0);
+    }
+
+    public void cooking() {
+
+        // 2. Ambil resep yang dipilih
+        Recipe selectedRecipe = player.getRecipePicked();
+        if (selectedRecipe == null) {
+            System.out.println("Tidak ada resep yang dipilih.");
+            return;
+        }
+
+        // 3. Periksa kelengkapan bahan
+        if (!cookingPan.isReadyToCook(selectedRecipe)) {
+            System.out.println("Bahan belum lengkap.");
+            return;
+        }
+
+        // 4. Periksa keberadaan bahan bakar (Coal)
+        if (!player.getInventory().contains(new Fuel("Coal"))) {
+            System.out.println("Tidak ada bahan bakar (Coal).");
+            return;
+        }
+
+        // 5. Kurangi energi dan bahan bakar
+        player.setEnergy(player.getEnergy() - 10);
+        player.getInventory().remove(new Fuel("Coal"), 1);
+
+        // 6. Lanjutkan progres memasak
+        boolean isFinished = cookingPan.progressCooking();  // ⏳ Progres per jam
+
+        // 7. Jika selesai, ambil hasil makanan
+        if (isFinished) {
+            Food result = cookingPan.finishCooking();  // 🍽️ Selesai
+            if (result != null) {
+                player.getInventory().add(result, 1);
+                gp.showTemporaryPopUp("/assets/PopUps/CookingPopUp.png", 2500, 0);
+                System.out.println("Berhasil memasak " + result.getName());
+            } else {
+                System.out.println("Gagal menyelesaikan masakan.");
+            }
+
+            // Reset status memasak
+            cookingPan.clear();  // reset wajan
+            player.setRecipePicked(null);  // reset resep
+        } else {
+            System.out.println("Masakan sedang dimasak... lanjutkan.");
+        }
     }
 
     public void gifting(NPC npc, Item item){ //PLayerController.gifting(NPCRegistry.getNPCPrototype("Dasco")
@@ -381,12 +500,59 @@ public class PlayerController {
         npc.setHeartPoints(npc.getHeartPoints() + heartPoints);
         gameTime.advanceGameTime(10);
         player.setEnergy(player.getEnergy() - 5);
+
+        playerStats.addNPCInteraction(npc.getName(), NPCInteractionType.GIFTING);
     }
-    public void selling(){}
+    public void selling(){
+        ShippingBin shippingBin = new ShippingBin();
+
+        for (Map.Entry<Item, Integer> entry : shippingBin.getItemsToSell().entrySet()){
+            Item item = entry.getKey();
+
+            System.out.println(item.getName() + "dijual seharga " + item.getSellPrice() + "g");
+        }
+        shippingBin.getItemsToSell();
+        shippingBin.sellAllItemsAndReturnProfit();
+    }
+
+    public void chatting(NPC npc) {
+        System.out.println("Berbicara dengan " + npc.getName());
+        gameTime.advanceGameTime(10);
+        player.setEnergy(player.getEnergy() - 10);
+        npc.setHeartPoints(npc.getHeartPoints() + 10);
+
+        playerStats.addNPCInteraction(npc.getName(), NPCInteractionType.CHATTING);
+        gp.getNpcInteractionPanel().showImagePopup(
+                "/assets/backgrounds/NPCInteractBG/" + npc.getName() + "_BG.png", 2500, 0);
+    }
+
+    public void interactWithNPC(NPC npc) {
+        String[] options = {"Chat", "Gift", "Propose", "Marry", "Cancel"};
+        int choice = JOptionPane.showOptionDialog(null, "Pilih interaksi:", "Interaksi dengan " + npc.getName(),
+                JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
+
+        switch (choice) {
+            case 0: chatting(npc); break;
+            case 1:
+                Item item = player.getItemHeld();
+                if (item != null) gifting(npc, item);
+                else System.out.println("Tidak ada item yang dipegang.");
+                break;
+            case 2: proposing(npc); break;
+            case 3: marrying(npc); break;
+            default: break;
+        }
+    }
 
     // getter setter
     public PlayerView getPlayerView() {
         return drawPlayer;
     }
 
-}
+
+
+// ✅ Getter untuk Pan, berguna untuk UI
+    public Pan getCookingPan() {
+        return cookingPan;
+    }
+    }

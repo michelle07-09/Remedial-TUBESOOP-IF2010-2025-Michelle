@@ -12,6 +12,8 @@ import com.spakborhills.model.game.GameMap;
 import com.spakborhills.model.game.PlantManager;
 import com.spakborhills.model.items.Item;
 import com.spakborhills.model.items.behavior.Edible;
+import com.spakborhills.model.items.ShippingBin;
+import com.spakborhills.controller.CollisionChecker;
 
 import javax.swing.*;
 import java.awt.*;
@@ -25,6 +27,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+
 
 public class GamePanel extends  JPanel{
     MainFrame mainFrame;
@@ -55,6 +58,10 @@ public class GamePanel extends  JPanel{
     private PlantManager plantManager = new PlantManager(this);
     private NPC currentNPC;
     private NPCInteractionPanel npcInteractionPanel;
+    private boolean npcInteractionActive = false;
+    private NPCView interactingNPC = null;
+
+
 
     private String currentMap = "farm";
     private String currentTileType;
@@ -72,6 +79,11 @@ public class GamePanel extends  JPanel{
 
     // Map untut menentukan player masuk ke dalam house milik NPC yang mana
     private Map<String, String> houseEntrances = new HashMap<>();
+
+    private ShippingBin shippingBin = new ShippingBin();
+    public CollisionChecker collisionChecker;
+    public ArrayList<NPCView> npcs = new ArrayList<>();
+
 
     public int getTileSize() {
         return tileSize;
@@ -331,6 +343,7 @@ public class GamePanel extends  JPanel{
             }
         }
 
+
         currentTileType = playerView.getCurrentTileType();
         frontTileType = playerView.getFrontTileType();
 
@@ -344,6 +357,7 @@ public class GamePanel extends  JPanel{
                     playerController.eating((Edible) player.getItemHeld());
                 } else if ((currentTileType.equals("046.png") || currentTileType.equals("047.png") ||
                         currentTileType.equals("040.png") || currentTileType.equals("041.png"))) { // Pintu masuk rumah
+
                     if (!currentMap.split(" ")[0].equals("house")) { // Pastikan tidak sudah di dalam house
                         // Mendapatkan koordinat tile player saat ini
                         int playerTileCol = playerView.getWorldX() / tileSize;
@@ -353,16 +367,32 @@ public class GamePanel extends  JPanel{
                         String entranceKey = playerTileCol + "," + playerTileRow;
                         String npcForThisHouse = houseEntrances.get(entranceKey); // mengambil nama npc untuk house
 
+
                         if (npcForThisHouse != null) {
                             // Ubah currentMap menjadi "house [NPCName]"
                             setCurrentMap("house " + npcForThisHouse);
                             System.out.println("Entering " + npcForThisHouse + "'s house.");
                             currentNPC = NPCRegistry.getNPCPrototype(npcForThisHouse);
+
                         } else {
                             // Jika tidak ada NPC yang terdaftar untuk pintu ini, masuk ke house default
                             // Jika semua rumah ada NPC-nya, bagian ini bisa dihapus
                             setCurrentMap("house default"); // Atau "house" saja
                             System.out.println("Entering a generic house.");
+                        }
+
+                    }
+                    else{
+                        for (NPCView npcView : this.npcs) {
+                            if (npcView.getCurrentMapName().equals(currentMapBaseNameForInteraction)) {
+                                if (npcView.isPlayerInInteractionRange(
+                                        playerView.worldX, playerView.worldY, tileSize, playerView.getDirection())) {
+
+                                    NPC realNPC = npcView.getNPCModel(); // 👈 PASTIKAN method getNPCModel() ada
+                                    playerController.interactWithNPC(realNPC);
+                                    break;
+                                }
+                            }
                         }
                     }
                 } else if (currentTileType.equals("138.png") || currentTileType.equals("139.png")) { // Pintu keluar rumah
@@ -395,6 +425,24 @@ public class GamePanel extends  JPanel{
                 } else if (frontTileType.equals("082.png") || frontTileType.equals("083.png") ||
                         frontTileType.equals("093.png") || frontTileType.equals("094.png") && currentMap.equals("house default")) {
                     playerController.watching();
+                } else if ((frontTileType.equals("088.png") || frontTileType.equals("089.png") ||
+                        frontTileType.equals("099.png") || frontTileType.equals("100.png") ||
+                        frontTileType.equals("109.png") || frontTileType.equals("110.png") ||
+                        frontTileType.equals("120.png") || frontTileType.equals("121.png")) && currentMap.equals("house default")) {
+                    playerController.cooking();
+
+
+                } else if (currentTileType.equals("009.png") || currentTileType.equals("010.png") || currentTileType.equals("011.png") || currentTileType.equals("012.png")) {
+                    playerController.chooseItem();
+                    if (player.getItemHeld() != null){
+                        if (shippingBin.addItem(player.getItemHeld(), 1)){
+                            player.getInventory().use(player.getItemHeld(), 1);
+                            System.out.println("Item " + player.getItemHeld().getName() + " added to bin");
+                        }
+                        else{
+                            System.out.println("Shipping bin is full");
+                        }
+                    }
                 }
             }
             keyH.setEnterPressed(false);
@@ -412,7 +460,7 @@ public class GamePanel extends  JPanel{
                     if (currentHouseNPCNameForInteraction != null && currentHouseNPCNameForInteraction.equals(npc.getNPCModel().getName()) &&
                             npc.isPlayerInInteractionRange(playerView.getWorldX(), playerView.getWorldY(), tileSize, playerView.direction)) {
                         // Pindah ke Panel untuk interaksi dengan NPC
-                        npcInteractionPanel = new NPCInteractionPanel(mainFrame, this, this.currentNPC.getName());
+
                         mainFrame.mainPanel.add(npcInteractionPanel, "npc");
                         mainFrame.switchPanel("npc");
                         pauseGame();
@@ -477,7 +525,6 @@ public class GamePanel extends  JPanel{
             }
             positionSetByReturn = false; // Reset flag setelah digunakan
         }
-//        System.out.println("Current NPC: " + currentNPC.getName());
     }
 
     // Metode baru untuk menampilkan gambar
@@ -555,6 +602,28 @@ public class GamePanel extends  JPanel{
             if (currentMapParts.length > 1) {
                 if (currentMap.split(" ")[1].equals(npc.getNPCModel().getName().split(" ")[0])) {
                     npc.draw(g2);
+                }
+                else if (npcInteractionActive && interactingNPC != null) {
+                    int boxWidth = tileSize * 6;
+                    int boxHeight = tileSize * 4;
+                    int boxX = (screenWidth - boxWidth) / 2;
+                    int boxY = (screenHeight - boxHeight) / 2;
+
+                    if (npcInteractionPanel != null) {
+                        npcInteractionPanel.paintComponent(g2);
+                    }
+
+                    // Teks nama NPC
+                    g2.setColor(Color.WHITE);
+                    g2.setFont(new Font("Arial", Font.BOLD, 20));
+                    g2.drawString(interactingNPC.getNPCModel().getName(), boxX + 30, boxY + 40);
+
+                    // Opsi interaksi
+                    g2.setFont(new Font("Arial", Font.PLAIN, 16));
+                    g2.drawString("1. Chat", boxX + 30, boxY + 80);
+                    g2.drawString("2. Gift", boxX + 30, boxY + 110);
+                    g2.drawString("3. Propose", boxX + 30, boxY + 140);
+                    g2.drawString("4. Marry", boxX + 30, boxY + 170);
                 }
             }
         }

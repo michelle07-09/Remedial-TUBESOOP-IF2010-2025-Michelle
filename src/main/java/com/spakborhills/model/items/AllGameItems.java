@@ -5,7 +5,12 @@ import com.spakborhills.model.items.crops.CropsRegistry;
 import com.spakborhills.model.items.fish.FishRegistry;
 import com.spakborhills.model.items.foods.FoodRegistry;
 import com.spakborhills.model.items.misc.MiscRegistry;
+import com.spakborhills.model.items.recipes.Recipe;
+import com.spakborhills.model.items.recipes.RecipeRegistry;
 import com.spakborhills.model.items.seeds.SeedRegistry;
+import com.spakborhills.model.items.recipes.Fuel;
+import com.spakborhills.model.items.recipes.FuelRegistry;
+
 
 public class AllGameItems {
 
@@ -56,6 +61,26 @@ public class AllGameItems {
                 }
             }
         }
+
+        if (RecipeRegistry.getAvailableRecipeNames() != null){
+            for (String name : RecipeRegistry.getAvailableRecipeNames()){
+                Recipe recipe = RecipeRegistry.getRecipePrototype(name);
+                if (recipe != null){
+                    allItems.add(recipe);
+                }
+            }
+        }
+
+        if (FuelRegistry.getAvailableFuelNames() != null){
+            for (String name : FuelRegistry.getAvailableFuelNames()){
+                Fuel fuel = FuelRegistry.getFuelPrototype(name);
+                if (fuel != null){
+                    allItems.add(fuel);
+                }
+            }
+        }
+
+
         return allItems;
     }
 }

@@ -25,7 +25,8 @@ public class FoodLoader {
                 int buyPrice = Integer.parseInt(parts[parts.length-2]);
                 String name = String.join(" ", Arrays.copyOfRange(parts, 0, parts.length-2));
 
-                Food corps = new Food(name, buyPrice, sellPrice);
+                int energyGain = 10; // misalnya
+                Food corps = new Food(name, buyPrice, sellPrice, energyGain);
                 corpsByName.put(name, corps);
 
             } else {

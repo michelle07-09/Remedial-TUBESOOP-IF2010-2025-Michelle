@@ -5,6 +5,7 @@ import com.spakborhills.model.entity.Entity;
 import com.spakborhills.model.entity.PlayerView;
 import com.spakborhills.model.entity.npc.NPCView;
 import com.spakborhills.view.gui.GamePanel;
+import com.spakborhills.model.entity.npc.NPCRegistry;
 
 import java.awt.Rectangle;
 import java.util.ArrayList;
@@ -13,8 +14,11 @@ public class CollisionChecker {
 
     GamePanel gp;
 
+
     public CollisionChecker(GamePanel gp) {
+
         this.gp = gp;
+
     }
 
     public void checkTile(Entity entity) {
@@ -84,7 +88,8 @@ public class CollisionChecker {
 
     /**
      * Memeriksa kolisi antara satu Entity (misalnya Player) dengan daftar NPC.
-     * @param entity Entity yang sedang bergerak (misalnya PlayerView).
+     *
+     * @param entity     Entity yang sedang bergerak (misalnya PlayerView).
      * @param targetList Daftar NPCView yang mungkin berkolisi.
      * @return Indeks dari NPC yang berkolisi, atau 999 jika tidak ada kolisi.
      */
@@ -144,5 +149,49 @@ public class CollisionChecker {
             }
         }
         return index;
+    }
+
+    // Fungsi tambahan: pengecekan tabrakan dengan NPC dari daftar yang diberikan
+    public boolean isCollidingWithNPC(Entity entity, ArrayList<NPCView> targetList) {
+        Rectangle entityBox = new Rectangle(
+                entity.worldX + entity.solidArea.x,
+                entity.worldY + entity.solidArea.y,
+                entity.solidArea.width,
+                entity.solidArea.height
+        );
+        for (NPCView npc : targetList) {
+            Rectangle npcBox = new Rectangle(
+                    npc.worldX + npc.solidArea.x,
+                    npc.worldY + npc.solidArea.y,
+                    npc.solidArea.width,
+                    npc.solidArea.height
+            );
+            if (entityBox.intersects(npcBox)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Fungsi tambahan: mengembalikan NPC yang sedang ditabrak oleh player (untuk interaksi ENTER)
+    public NPCView getCollidingNPC(Entity entity, ArrayList<NPCView> targetList) {
+        Rectangle entityBox = new Rectangle(
+                entity.worldX + entity.solidArea.x,
+                entity.worldY + entity.solidArea.y,
+                entity.solidArea.width,
+                entity.solidArea.height
+        );
+        for (NPCView npc : targetList) {
+            Rectangle npcBox = new Rectangle(
+                    npc.worldX + npc.solidArea.x,
+                    npc.worldY + npc.solidArea.y,
+                    npc.solidArea.width,
+                    npc.solidArea.height
+            );
+            if (entityBox.intersects(npcBox)) {
+                return npc;
+            }
+        }
+        return null;
     }
 }
