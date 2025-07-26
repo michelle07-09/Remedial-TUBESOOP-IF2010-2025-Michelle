@@ -8,10 +8,7 @@ That Time I Became a Farming Game Dev to Save the World merupakan permainan pixe
 | No       | Nama       | NIM       | Github      |
 | ------------- | ------------- | ------------- | ------------- |
 | 1   | Michelle Hamdani | 18223037  | @michelle07-09   |
-| 2  | Muhammad Aymar Barkhaya  | 18223051   | @aymarb  |
-| 3  | Naura Ayurachmani   | 18223061   | @naurchmn  |
-| 4  | Nawaf Amjad Rizqi A. Ismail   | 18223073   | @Nawafarai05   |
-| 5   | Adam Joaquin Girsang   | 18223089   | @adamjoaquin20  |
+
 
 > Asisten: Farhan Nabil Suryono
 
@@ -57,7 +54,8 @@ Clone the Project
 
 Go to the Project Directory
 
-Open the Project Folder
+ ### Link Youtube
+[Demo Program Game](https://youtu.be/e9ILMnLe8Ps?si=ZFkIu-3ewr06VE5g)
 
 Run the Program
 
